@@ -11,6 +11,7 @@ import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -86,6 +87,8 @@ public class Limelight extends SubsystemBase {
     private DoublePublisher yDistPub;
     private DoublePublisher xDistPub;
     private DoublePublisher horizontalDistPub;
+
+    private final SwerveDrivePoseEstimator m_PoseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
 
     // TODO setup camera IPs?
     // https://docs.limelightvision.io/docs/docs-limelight/getting-started/FRC/best-practices
@@ -317,6 +320,10 @@ public class Limelight extends SubsystemBase {
         }
     }
 
+    public void updateOdometry(){
+        
+    }
+
     public Command flashLEDs() {
         return Commands.sequence(
             Commands.runOnce(() -> LimelightHelpers.setLEDMode_ForceBlink(cameraName)),
@@ -330,4 +337,5 @@ public class Limelight extends SubsystemBase {
     public Command ifHasTarget(Command cmd) {
         return cmd.onlyWhile(this::hasValidTarget);
     }
+
 }
