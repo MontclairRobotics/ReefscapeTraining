@@ -30,42 +30,7 @@ public class Robot extends LoggedRobot {
   private final RobotContainer m_robotContainer;
 
   public Robot() {
-    if (RobotContainer.logMode) {
-      Logger.recordMetadata("ProjectName", "Reefscape"); // Set a metadata value
-
-      if (/*isReal()*/ true) {
-      Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs")); // Log to a USB stick ("/U/logs")
-      Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
-      new PowerDistribution(1, ModuleType.kRev); // Enables power distribution
-      // logging
-      }
-      // } else {
-      // setUseTiming(false); // Run as fast as possible
-      // String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from
-      // // AdvantageScope (or prompt the user)
-      // Logger.setReplaySource(new WPILOGReader(logPath)); // Read replay log
-      // Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath,
-      // "_sim"))); // Save outputs to a new log
-      // }
-      PathPlannerLogging.setLogActivePathCallback(
-        (activePath) -> {
-          Logger.recordOutput(
-              "Auto/ActivePath", activePath.toArray(new Pose2d[activePath.size()]));
-        });
-
-    PathPlannerLogging.setLogTargetPoseCallback(
-        (targetPose) -> {
-          Logger.recordOutput("Auto/TargetPose", targetPose);
-        });
-      Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
-      Logger.start(); // Start logging! No more data receivers, replay sources, or
-      // SignalLogger.start(); // CTRE logs
-      // metadata values may be added.
-    }
     m_robotContainer = new RobotContainer();
-
-
-    // ..
   }
 
   @Override
@@ -75,27 +40,16 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void disabledInit() {
-    RobotContainer.leftLimelight.disable();
-    RobotContainer.rightLimelight.disable();
-  }
+  public void disabledInit() {}
 
   @Override
-  public void robotInit() {
-    FollowPathCommand.warmupCommand().schedule();
-    PathfindingCommand.warmupCommand().schedule();
-
-  }
+  public void robotInit() {}
 
   @Override
-  public void disabledPeriodic() {
-  }
+  public void disabledPeriodic() {}
 
   @Override
-  public void disabledExit() {
-    RobotContainer.leftLimelight.enable();
-    RobotContainer.rightLimelight.enable();
-  }
+  public void disabledExit() {}
 
   @Override
   public void autonomousInit() {
@@ -117,16 +71,7 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void teleopInit() {
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-    }
-
-    RobotContainer.leftLimelight.setGyroMode(1);
-    RobotContainer.rightLimelight.setGyroMode(1);
-
-    // Elastic.selectTab("Teleoperated");
-  }
+  public void teleopInit() {}
 
   @Override
   public void teleopPeriodic() {
