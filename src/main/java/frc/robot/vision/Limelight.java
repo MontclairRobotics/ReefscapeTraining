@@ -27,7 +27,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
-import frc.robot.leds.LEDs;
 import frc.robot.util.PoseUtils;
 import frc.robot.vision.LimelightHelpers.RawFiducial;
 
@@ -173,85 +172,6 @@ public class Limelight extends SubsystemBase {
         return tagRotationsMap.get(closestId);
     }
 
-    public void poseEstimationMegatag2() {
-
-        double angle = (RobotContainer.drivetrain.getWrappedHeading().getDegrees() + 360) % 360;
-        LimelightHelpers.SetRobotOrientation(cameraName, angle, 0, 0, 0, 0, 0);
-        LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName);
-
-        boolean overrideReject = false;
-        boolean isTipping = Math.abs(RobotContainer.drivetrain.getPigeon2().getPitch().getValueAsDouble()) > 2
-                || Math.abs(RobotContainer.drivetrain.getPigeon2().getRoll().getValueAsDouble()) > 2;
-        Logger.recordOutput(cameraName + "/isTipping", isTipping);
-
-        if (hasTipped && !isTipping) {
-            overrideReject = true;
-        }
-
-        boolean shouldRejectUpdate = false;
-        int rejectReason = 0;
-        if (mt2 != null) {
-            Optional<Pose2d> optPastRobotPose = RobotContainer.drivetrain.getPoseAtTime(mt2.timestampSeconds);
-            if (optPastRobotPose.isPresent()) {
-                Logger.recordOutput(cameraName + "/PastRobotPose", optPastRobotPose.get());
-            }
-            Pose2d pastRobotPose = RobotContainer.drivetrain.getRobotPose();
-            // Pose2d pastRobotPose = optPastRobotPose.orElseGet(() -> RobotContainer.drivetrain.getRobotPose());
-            Logger.recordOutput(cameraName + "/timestampSeconds", mt2.timestampSeconds);
-            RawFiducial[] tags = mt2.rawFiducials;
-            int[] ids = new int[tags.length];
-            for (int i = 0; i < tags.length; i++) {
-                ids[i] = tags[i].id;
-            }
-            Logger.recordOutput(cameraName + "/SeenTags", ids);
-            Logger.recordOutput(cameraName + "/PoseLatency", mt2.timestampSeconds - Timer.getFPGATimestamp());
-            if (mt2.tagCount == 0) {
-                // rejects current measurement if there are no aprilTags
-                shouldRejectUpdate = true;
-                rejectReason = 1;
-            }
-            if (Math.abs(RobotContainer.drivetrain.getCurrentSpeeds().omegaRadiansPerSecond) > angleVelocityTolerance) {
-                shouldRejectUpdate = true;
-                rejectReason = 2;
-            }
-            if ((mt2.pose.getTranslation().getDistance(pastRobotPose.getTranslation()) > 0.9
-                    && !DriverStation.isDisabled() && !DriverStation.isTeleopEnabled())) {
-                shouldRejectUpdate = true;
-                rejectReason = 3;
-            }
-            if (Math.abs(PoseUtils.wrapRotation(mt2.pose.getRotation())
-                    .minus(PoseUtils.wrapRotation(pastRobotPose.getRotation())).getDegrees()) > 3) {
-                shouldRejectUpdate = true;
-                rejectReason = 4;
-            }
-            if (mt2.avgTagDist > 4) {
-                shouldRejectUpdate = true;
-                rejectReason = 5;
-            }
-            // if (isTipping) {
-            // shouldRejectUpdate = true;
-            // }
-            // adds vision measurement if conditions are met
-            if (!shouldRejectUpdate) {
-                Logger.recordOutput(cameraName + "/mt2Pose", mt2.pose);
-                Logger.recordOutput(cameraName + "/Calculated stdevs",
-                        Math.pow(0.5, mt2.tagCount) * 2 * mt2.avgTagDist);
-                // Vector<N3> = VecBuilder.fill
-                RobotContainer.drivetrain.addVisionMeasurement(
-                        mt2.pose,
-                        Utils.fpgaToCurrentTime(mt2.timestampSeconds),
-                        // VecBuilder.fill(0.000716, 0.0003, Double.POSITIVE_INFINITY));
-                        VecBuilder.fill(Math.pow(0.5, mt2.tagCount) * 2 * mt2.avgTagDist,
-                                Math.pow(0.5, mt2.tagCount) * 2 * mt2.avgTagDist, Double.POSITIVE_INFINITY));
-                if (DriverStation.isTeleopEnabled()) {
-                    RobotContainer.leds.playLEDPattern(LEDs.holding(Color.kWhite), 0.2);
-                }
-            } else {
-                Logger.recordOutput(cameraName + "/mt2PoseRejected", mt2.pose);
-                Logger.recordOutput(cameraName + "/rejectReason", rejectReason);
-            }
-        }
-    }
 
     // TODO: Do we need these / check if the trig is right
 
@@ -351,10 +271,6 @@ public class Limelight extends SubsystemBase {
 
     public void periodic() {
 
-        if (Math.abs(RobotContainer.drivetrain.getPigeon2().getPitch().getValueAsDouble()) > 0.3
-                || Math.abs(RobotContainer.drivetrain.getPigeon2().getRoll().getValueAsDouble()) > 0.3) {
-            hasTipped = true;
-        }
         // tagID = (int) Limetable.getEntry("tid").getDouble(-1);
         // TODO if you get a pose estimate in the frame before this is applied it may
         // not work
@@ -377,7 +293,6 @@ public class Limelight extends SubsystemBase {
             }
         }
         // LimelightHelpers.SetFiducialIDFiltersOverride(cameraName, validTags);
-        poseEstimationMegatag2();
         xDistPub.set(getHorizontalDistanceToReef());
         yDistPub.set(getStraightDistanceToReef());
         horizontalDistPub.set(getDistanceToReef());
