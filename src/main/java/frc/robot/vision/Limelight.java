@@ -22,6 +22,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -48,6 +49,7 @@ public class Limelight extends SubsystemBase {
     public static final int[] coralStationIDsBlue = { 12, 13 };
     public static final int[] coralStationIDs = { 1, 2, 12, 13 };
     public static HashMap<Integer, Rotation2d> tagRotationsMap = new HashMap<Integer, Rotation2d>();
+    
     {
         tagRotationsMap.put(6, Rotation2d.fromDegrees(120));
         tagRotationsMap.put(7, Rotation2d.fromDegrees(180));
@@ -63,6 +65,35 @@ public class Limelight extends SubsystemBase {
         tagRotationsMap.put(20, Rotation2d.fromDegrees(-120));
         tagRotationsMap.put(21, Rotation2d.fromDegrees(180));
         tagRotationsMap.put(22, Rotation2d.fromDegrees(120));
+    }
+
+    public static final HashMap<Integer, Pose2d> aprilTagPositions = new HashMap<Integer, Pose2d>();
+
+    {
+        //for red alliance
+        aprilTagPositions.put(1, new Pose2d(657.37, 25.80, Rotation2d.fromDegrees(126)));
+        aprilTagPositions.put(2, new Pose2d(657.37, 291.2, Rotation2d.fromDegrees(234)));
+        aprilTagPositions.put(3, new Pose2d(455.15, 317.15, Rotation2d.fromDegrees(270)));
+        aprilTagPositions.put(4, new Pose2d(365.2, 241.64, Rotation2d.fromDegrees(0)));
+        aprilTagPositions.put(5, new Pose2d(365.2, 75.390, Rotation2d.fromDegrees(6)));
+        aprilTagPositions.put(6, new Pose2d(530.49, 130.17, Rotation2d.fromDegrees(300)));
+        aprilTagPositions.put(7, new Pose2d(546.87, 158.5, Rotation2d.fromDegrees(0)));
+        aprilTagPositions.put(8, new Pose2d(530.49, 186.83, Rotation2d.fromDegrees(60)));
+        aprilTagPositions.put(9, new Pose2d(497.77, 186.83, Rotation2d.fromDegrees(120)));
+        aprilTagPositions.put(10, new Pose2d(481.39, 158.5, Rotation2d.fromDegrees(180)));
+        aprilTagPositions.put(11, new Pose2d(497.77, 130.17, Rotation2d.fromDegrees(240)));
+        //for blue alliance
+        aprilTagPositions.put(12, new Pose2d(33.51, 25.80, Rotation2d.fromDegrees(54)));
+        aprilTagPositions.put(13, new Pose2d(33.51, 291.20, Rotation2d.fromDegrees(306)));
+        aprilTagPositions.put(14, new Pose2d(325.68, 241.64, Rotation2d.fromDegrees(180)));
+        aprilTagPositions.put(15, new Pose2d(325.68, 75.39, Rotation2d.fromDegrees(180)));
+        aprilTagPositions.put(16, new Pose2d(235.73, -0.15, Rotation2d.fromDegrees(90)));
+        aprilTagPositions.put(17, new Pose2d(160.39, 130.17, Rotation2d.fromDegrees(240)));
+        aprilTagPositions.put(18, new Pose2d(144.00, 158.50, Rotation2d.fromDegrees(180)));
+        aprilTagPositions.put(19, new Pose2d(160.39, 186.83, Rotation2d.fromDegrees(120)));
+        aprilTagPositions.put(20, new Pose2d(193.30, 186.83, Rotation2d.fromDegrees(60)));
+        aprilTagPositions.put(21, new Pose2d(209.49, 158.50, Rotation2d.fromDegrees(0)));
+        aprilTagPositions.put(22, new Pose2d(193.10, 130.17, Rotation2d.fromDegrees(300)));
     }
     public static final double TARGET_DEBOUNCE_TIME = 0.2;
 
@@ -88,7 +119,8 @@ public class Limelight extends SubsystemBase {
     private DoublePublisher xDistPub;
     private DoublePublisher horizontalDistPub;
 
-    private final SwerveDrivePoseEstimator m_PoseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
+    private SwerveDrivePoseEstimator m_PoseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
+    private Pose2d pose = new Pose2d();
 
     // TODO setup camera IPs?
     // https://docs.limelightvision.io/docs/docs-limelight/getting-started/FRC/best-practices
@@ -321,8 +353,53 @@ public class Limelight extends SubsystemBase {
     }
 
     public void updateOdometry(){
+        Optional<Alliance>ally = DriverStation.getAlliance();
+        LimelightHelpers.PoseEstimate mt1 = null;
+        boolean doRejectUpdate = false;
         
+
+        if(ally.isPresent()){
+            if (ally.get() == Alliance.Red){
+                mt1 = LimelightHelpers.getBotPoseEstimate_wpiRed("limelight");
+            }
+            if (ally.get() == Alliance.Blue){
+                mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+            }
+        }
+        else {
+            
+        }
+
+        if (mt1.tagCount == 1 && mt1.rawFiducials.length == 1){
+            if (mt1.rawFiducials[0].ambiguity > 0.7){
+                doRejectUpdate = true;
+            }
+            if (mt1.rawFiducials[0].distToCamera > 3){
+                doRejectUpdate = true;
+            }
+        }
+
+        if (mt1.tagCount == 0){
+            doRejectUpdate = true;
+        }
+
+        if (!doRejectUpdate){
+            m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.5, 0.5, 9999999));
+            m_PoseEstimator.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
+        }
+
+        //pose = m_PoseEstimator.getEstimatedPosition();
+
+        //pose = 
     }
+
+    public Pose2d getPose(){
+        return pose;
+    }
+    
+
+
+
 
     public Command flashLEDs() {
         return Commands.sequence(
