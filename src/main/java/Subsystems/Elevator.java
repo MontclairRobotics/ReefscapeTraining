@@ -4,7 +4,9 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 public class Elevator extends SubsystemBase{
-        int speed;
+        public double speed;
+        public final double MAX_HEIGHT = 1;
+        public double timeToReachMaxHeight = MAX_HEIGHT/speed;
         private final int LEFT_MOTOR_ID = 1;
         private final int RIGHT_MOTOR_ID = 1;
         public TalonFX rightTalonFX;
