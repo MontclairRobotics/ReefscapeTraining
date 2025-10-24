@@ -119,7 +119,7 @@ public class Limelight extends SubsystemBase {
     private DoublePublisher xDistPub;
     private DoublePublisher horizontalDistPub;
 
-    private SwerveDrivePoseEstimator m_PoseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
+    private SwerveDrivePoseEstimator p = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
     private Pose2d pose = new Pose2d();
 
     // TODO setup camera IPs?
@@ -356,14 +356,15 @@ public class Limelight extends SubsystemBase {
         Optional<Alliance>ally = DriverStation.getAlliance();
         LimelightHelpers.PoseEstimate mt1 = null;
         boolean doRejectUpdate = false;
+        LimelightHelpers.SetRobotOrientation("limelight", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
         
 
         if(ally.isPresent()){
             if (ally.get() == Alliance.Red){
-                mt1 = LimelightHelpers.getBotPoseEstimate_wpiRed("limelight");
+                LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight");
             }
             if (ally.get() == Alliance.Blue){
-                mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+                LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
             }
         }
         else {
@@ -382,13 +383,34 @@ public class Limelight extends SubsystemBase {
         if (mt1.tagCount == 0){
             doRejectUpdate = true;
         }
-
-        if (!doRejectUpdate){
-            m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.5, 0.5, 9999999));
-            m_PoseEstimator.addVisionMeasurement(mt1.pose, mt1.timestampSeconds);
+        if(Math.abs(m_gyro.getRate()) > 360)
+        {
+          doRejectUpdate = true;
+        }
+        if(mt2.tagCount == 0)
+        {
+          doRejectUpdate = true;
+        }
+        if(!doRejectUpdate)
+        {
+            if(Math.abs(m_gyro.getRate()) > 360) {
+              doRejectUpdate = true;
+            }
+            if(mt2.tagCount == 0)
+            {
+              doRejectUpdate = true;
+            }
+            if(!doRejectUpdate)
+            {
+              p.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+              p.addVisionMeasurement(
+                  mt2.pose,
+                  mt2.timestampSeconds);
+            }
+        }
         }
 
-        //pose = m_PoseEstimator.getEstimatedPosition();
+        //pose = p.getEstimatedPosition();
 
         //pose = 
     }
