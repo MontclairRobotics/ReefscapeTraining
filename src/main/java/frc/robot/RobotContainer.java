@@ -47,6 +47,6 @@ public class RobotContainer {
   private void configureBindings() {}
 
   public Command getAutonomousCommand() {
-    return Commands.none();
+    return new PathPlannerAuto("testPathUno.path");
   }
 }

@@ -351,6 +351,8 @@ public class Limelight extends SubsystemBase {
             }
         }
 
+        this.updateOdometry();
+
     }
     //do gyro stuff later 
     public void updateOdometry(){
@@ -408,20 +410,11 @@ public class Limelight extends SubsystemBase {
                   mt2.timestampSeconds);
             }
         }
-        }
 
         //pose = p.getEstimatedPosition();
 
         //pose = 
     }
-
-    public Pose2d getPose(){
-        return pose;
-    }
-    
-
-
-
 
     public Command flashLEDs() {
         return Commands.sequence(
