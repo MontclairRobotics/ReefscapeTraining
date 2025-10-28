@@ -350,22 +350,22 @@ public class Limelight extends SubsystemBase {
                 Logger.recordOutput(cameraName + "/tcornxy", tcornxy);
             }
         }
-    }
 
+    }
+    //do gyro stuff later 
     public void updateOdometry(){
         Optional<Alliance>ally = DriverStation.getAlliance();
         LimelightHelpers.PoseEstimate mt1 = null;
+        LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
         boolean doRejectUpdate = false;
-        LimelightHelpers.SetRobotOrientation("limelight", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        LimelightHelpers.SetRobotOrientation("limelight", p.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
         
 
         if(ally.isPresent()){
             if (ally.get() == Alliance.Red){
-                LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight");
+                mt2 = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight");
             }
-            if (ally.get() == Alliance.Blue){
-                LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
-            }
+    
         }
         else {
             
