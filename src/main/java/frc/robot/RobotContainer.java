@@ -21,6 +21,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -39,6 +40,7 @@ import frc.robot.util.TunerConstants;
 import frc.robot.vision.Limelight;
 
 public class RobotContainer {
+  public static CommandPS5Controller controller = new CommandPS5Controller(0);
 
   public RobotContainer() {
     configureBindings();
