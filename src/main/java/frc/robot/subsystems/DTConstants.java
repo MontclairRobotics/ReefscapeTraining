@@ -22,4 +22,13 @@ public class DTConstants{
             static double rotkI = -1; //TODO: FIND THESE
             static double rotkD = -1; //TODO: FIND THESE
 
+    // Ports
+            static int frontLeftDriveID = -1;
+            static int frontLeftRotationID = -1;
+            static int frontRightDriveID = -1;
+            static int frontRightRotationID = -1;
+            static int backLeftDriveID = -1;
+            static int backLeftRotationID = -1;
+            static int backRightDriveID = -1;
+            static int backRightRotationID = -1;
 }

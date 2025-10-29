@@ -20,7 +20,7 @@ public class SwerveModule {
     /**
      * Sets The Voltage Of A Drive Motor and a Turn Motor 
      */
-    public void setVoltage(double driveVoltage, double rotVoltage){
+    public void driveWithVoltage(double driveVoltage, double rotVoltage){
         driveMotor.setVoltage(driveVoltage);
         turnMotor.setVoltage(rotVoltage);
     }
