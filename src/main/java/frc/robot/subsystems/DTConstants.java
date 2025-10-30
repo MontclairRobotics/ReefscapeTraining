@@ -23,12 +23,12 @@ public class DTConstants{
             static double rotkD = -1; //TODO: FIND THESE
 
     // Ports
-            static int frontLeftDriveID = -1;
-            static int frontLeftRotationID = -1;
-            static int frontRightDriveID = -1;
-            static int frontRightRotationID = -1;
-            static int backLeftDriveID = -1;
-            static int backLeftRotationID = -1;
-            static int backRightDriveID = -1;
-            static int backRightRotationID = -1;
+            static int frontLeftDriveID = 1;
+            static int frontLeftRotationID = 2;
+            static int frontRightDriveID = 3;
+            static int frontRightRotationID = 4;
+            static int backLeftDriveID = 5;
+            static int backLeftRotationID = 6;
+            static int backRightDriveID = 7;
+            static int backRightRotationID = 8;
 }

@@ -60,7 +60,7 @@ public class DriveTrain implements Subsystem{
         for(int i = 0; i < 4;i++){
             swerveModules[i].driveWithVoltage(
                 drivePID.calculate(
-                    swerveModules[i].driveMotor.getBusVoltage(), //yes, the measurement and setpoint are different units.  
+                    swerveModules[i].driveMotor.getMotorVoltage().getValueAsDouble(), //yes, the measurement and setpoint are different units.  
                     moduleStates[i].speedMetersPerSecond), //we're pretty sure it works. we hope it works.
                 rotPID.calculate(
                     swerveModules[i].turnMotor.getAbsoluteEncoder().getPosition(),
