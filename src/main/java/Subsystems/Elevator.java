@@ -20,7 +20,7 @@ public class Elevator extends SubsystemBase{
         public static final double MAX_HEIGHT = STARTING_HEIGHT + MAX_EXTENSION;
         private static final double METERS_PER_ROTATION = 36 * 5 / 1000.0 * (1.0 / 9);
         private static final double ROTATIONS_PER_METER = 1.0/METERS_PER_ROTATION;
-        private static final double SLOW_DOWN_ZONE = 7.0;
+        private static final double SLOW_DOWN_ZONE = 0.07;
         private static final double SLOWEST_SPEED = 0.5;
         public static final double MAX_VELO_RPS = 100.0;
         public static final double MAX_ACCELERATION_RPS = 350.0;
@@ -75,12 +75,28 @@ public boolean isNotAtSafeHeight(){
 
 public void manualControl(){
     double speed = Math.pow((RobotContainer.controller.getLeftY()), 3);
-    leftTalonFX.set(speed);
-    rightTalonFX.set(speed);
+    double percentExtension = this.getCurrentHeight()/MAX_EXTENSION;
+    if (percentExtension >= (1-SLOW_DOWN_ZONE)||percentExtension <= SLOW_DOWN_ZONE){
+        if (percentExtension >= 0.99|| percentExtension <= 0.01){
+            stop();
+        }
+        else{
+            leftTalonFX.set(Math.min(speed, SLOWEST_SPEED));
+            rightTalonFX.set(Math.min(speed, SLOWEST_SPEED));
+        }
+    }
+    else {
+        leftTalonFX.set(speed);
+        rightTalonFX.set(speed);
+    }
 }
 
 public Command goToHeightCommand (double targetHeight){
     return Commands.run(() -> goToHeight(targetHeight), this)
     .until(() -> getCurrentHeight() == MathUtil.applyDeadband(targetHeight, 0.01));
 }
+
+public Command manualContralCommand (){
+    return Commands.run(() -> manualControl(), this);
+    }
 }
