@@ -8,6 +8,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
@@ -67,34 +68,6 @@ public class Limelight extends SubsystemBase {
         tagRotationsMap.put(22, Rotation2d.fromDegrees(120));
     }
 
-    public static final HashMap<Integer, Pose2d> aprilTagPositions = new HashMap<Integer, Pose2d>();
-
-    {
-        //for red alliance
-        aprilTagPositions.put(1, new Pose2d(657.37, 25.80, Rotation2d.fromDegrees(126)));
-        aprilTagPositions.put(2, new Pose2d(657.37, 291.2, Rotation2d.fromDegrees(234)));
-        aprilTagPositions.put(3, new Pose2d(455.15, 317.15, Rotation2d.fromDegrees(270)));
-        aprilTagPositions.put(4, new Pose2d(365.2, 241.64, Rotation2d.fromDegrees(0)));
-        aprilTagPositions.put(5, new Pose2d(365.2, 75.390, Rotation2d.fromDegrees(6)));
-        aprilTagPositions.put(6, new Pose2d(530.49, 130.17, Rotation2d.fromDegrees(300)));
-        aprilTagPositions.put(7, new Pose2d(546.87, 158.5, Rotation2d.fromDegrees(0)));
-        aprilTagPositions.put(8, new Pose2d(530.49, 186.83, Rotation2d.fromDegrees(60)));
-        aprilTagPositions.put(9, new Pose2d(497.77, 186.83, Rotation2d.fromDegrees(120)));
-        aprilTagPositions.put(10, new Pose2d(481.39, 158.5, Rotation2d.fromDegrees(180)));
-        aprilTagPositions.put(11, new Pose2d(497.77, 130.17, Rotation2d.fromDegrees(240)));
-        //for blue alliance
-        aprilTagPositions.put(12, new Pose2d(33.51, 25.80, Rotation2d.fromDegrees(54)));
-        aprilTagPositions.put(13, new Pose2d(33.51, 291.20, Rotation2d.fromDegrees(306)));
-        aprilTagPositions.put(14, new Pose2d(325.68, 241.64, Rotation2d.fromDegrees(180)));
-        aprilTagPositions.put(15, new Pose2d(325.68, 75.39, Rotation2d.fromDegrees(180)));
-        aprilTagPositions.put(16, new Pose2d(235.73, -0.15, Rotation2d.fromDegrees(90)));
-        aprilTagPositions.put(17, new Pose2d(160.39, 130.17, Rotation2d.fromDegrees(240)));
-        aprilTagPositions.put(18, new Pose2d(144.00, 158.50, Rotation2d.fromDegrees(180)));
-        aprilTagPositions.put(19, new Pose2d(160.39, 186.83, Rotation2d.fromDegrees(120)));
-        aprilTagPositions.put(20, new Pose2d(193.30, 186.83, Rotation2d.fromDegrees(60)));
-        aprilTagPositions.put(21, new Pose2d(209.49, 158.50, Rotation2d.fromDegrees(0)));
-        aprilTagPositions.put(22, new Pose2d(193.10, 130.17, Rotation2d.fromDegrees(300)));
-    }
     public static final double TARGET_DEBOUNCE_TIME = 0.2;
 
     /* INSTANCE VARIABLES */
@@ -121,6 +94,7 @@ public class Limelight extends SubsystemBase {
 
     private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
     private Pose2d pose = new Pose2d();
+    private final Pigeon2 m_gyro = new Pigeon2(-1); //todo: find
 
     // TODO setup camera IPs?
     // https://docs.limelightvision.io/docs/docs-limelight/getting-started/FRC/best-practices
@@ -354,10 +328,9 @@ public class Limelight extends SubsystemBase {
         this.updateOdometry();
 
     }
-    //do gyro stuff later 
-    public void updateOdometry(){
+    public void updateOdometry(){   //figure out mettaton 1
         Optional<Alliance>ally = DriverStation.getAlliance();
-        LimelightHelpers.PoseEstimate mt1 = null;
+        //LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
         LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
         boolean doRejectUpdate = false;
         LimelightHelpers.SetRobotOrientation("limelight", poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
@@ -367,13 +340,9 @@ public class Limelight extends SubsystemBase {
             if (ally.get() == Alliance.Red){
                 mt2 = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight");
             }
-    
-        }
-        else {
-            
-        }
+        } 
 
-        if (mt1.tagCount == 1 && mt1.rawFiducials.length == 1){
+        /*if (mt1.tagCount == 1 && mt1.rawFiducials.length == 1){
             if (mt1.rawFiducials[0].ambiguity > 0.7){
                 doRejectUpdate = true;
             }
@@ -384,26 +353,26 @@ public class Limelight extends SubsystemBase {
 
         if (mt1.tagCount == 0){
             doRejectUpdate = true;
-        }
-        if(Math.abs(m_gyro.getRate()) > 360)
-        {
+        }*/
+
+        if(Math.abs(m_gyro.getAngularVelocityZWorld().getValueAsDouble()) > 200){
           doRejectUpdate = true;
         }
-        if(mt2.tagCount == 0)
-        {
+
+        if(mt2.tagCount == 0){
           doRejectUpdate = true;
         }
-        if(!doRejectUpdate)
-        {
-            if(Math.abs(m_gyro.getRate()) > 360) {
+
+        if(!doRejectUpdate){
+            if(Math.abs(m_gyro.getAngularVelocityZWorld().getValueAsDouble()) > 200){
               doRejectUpdate = true;
             }
-            if(mt2.tagCount == 0)
-            {
+
+            if(mt2.tagCount == 0){
               doRejectUpdate = true;
             }
-            if(!doRejectUpdate)
-            {
+
+            if(!doRejectUpdate){
               poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
               poseEstimator.addVisionMeasurement(
                   mt2.pose,
