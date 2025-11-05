@@ -119,7 +119,7 @@ public class Limelight extends SubsystemBase {
     private DoublePublisher xDistPub;
     private DoublePublisher horizontalDistPub;
 
-    private SwerveDrivePoseEstimator p = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
+    private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
     private Pose2d pose = new Pose2d();
 
     // TODO setup camera IPs?
@@ -360,7 +360,7 @@ public class Limelight extends SubsystemBase {
         LimelightHelpers.PoseEstimate mt1 = null;
         LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
         boolean doRejectUpdate = false;
-        LimelightHelpers.SetRobotOrientation("limelight", p.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        LimelightHelpers.SetRobotOrientation("limelight", poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
         
 
         if(ally.isPresent()){
@@ -404,8 +404,8 @@ public class Limelight extends SubsystemBase {
             }
             if(!doRejectUpdate)
             {
-              p.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
-              p.addVisionMeasurement(
+              poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+              poseEstimator.addVisionMeasurement(
                   mt2.pose,
                   mt2.timestampSeconds);
             }
