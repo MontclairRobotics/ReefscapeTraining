@@ -21,6 +21,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -29,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.subsystems.DriveTrain;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.Notification.NotificationLevel;
@@ -39,12 +41,21 @@ import frc.robot.util.TunerConstants;
 import frc.robot.vision.Limelight;
 
 public class RobotContainer {
+  
+  public static CommandPS5Controller driverController;
+  public static DriveTrain driveTrain = new DriveTrain();
+  
 
-  public RobotContainer() {
+public RobotContainer() {
     configureBindings();
   }
 
-  private void configureBindings() {}
+  private void configureBindings() {
+    driveTrain.setDefaultCommand(driveTrain.driveCommand());
+    driverController.square().onTrue(
+      driveTrain.fieldRelToggleCommand()
+    );
+  }
 
   public Command getAutonomousCommand() {
     return Commands.none();
