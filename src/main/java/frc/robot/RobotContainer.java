@@ -13,6 +13,7 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import Subsystems.Elevator;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -41,12 +42,15 @@ import frc.robot.vision.Limelight;
 
 public class RobotContainer {
   public static CommandPS5Controller controller = new CommandPS5Controller(0);
+  public static Elevator elevator = new Elevator();
 
   public RobotContainer() {
     configureBindings();
   }
 
-  private void configureBindings() {}
+  private void configureBindings() {
+    elevator.setDefaultCommand(elevator.manualContralCommand());
+  }
 
   public Command getAutonomousCommand() {
     return Commands.none();
