@@ -24,6 +24,11 @@ public class Elevator extends SubsystemBase{
         private static final double SLOWEST_SPEED = 0.5;
         public static final double MAX_VELO_RPS = 100.0;
         public static final double MAX_ACCELERATION_RPS = 350.0;
+        public static final double L1_HEIGHT = 0;
+        public static final double L2_HEIGHT = 0.025;
+        public static final double L3_HEIGHT = 0.495;
+        public static final double L4_HEIGHT = 1.2;
+        public static final double CLIMB_HEIGHT = 0;
 
         public double speed;
         public double pidOutput;
@@ -94,6 +99,10 @@ public void manualControl(){
 public Command goToHeightCommand (double targetHeight){
     return Commands.run(() -> goToHeight(targetHeight), this)
     .until(() -> getCurrentHeight() == MathUtil.applyDeadband(targetHeight, 0.01));
+}
+
+public Command goToL1HeightCommand(double targetHeight){
+    return Commands.runOnce(() -> goToHeight(L1_HEIGHT), this);
 }
 
 public Command manualContralCommand (){
