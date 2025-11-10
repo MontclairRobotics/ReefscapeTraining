@@ -50,17 +50,17 @@ public Elevator (){
     pidController = new PIDController(8.2697, 0, 0.068398);
     }
 
-private double getCurrentHeight(){
+private double getExtension(){
     double rightDisplacement = (rightTalonFX.getPosition().getValueAsDouble());
     double leftDisplacement = (rightTalonFX.getPosition().getValueAsDouble());
     double averageDisplacement = ((rightDisplacement + leftDisplacement)/2.0);
     return averageDisplacement * METERS_PER_ROTATION;
 
 }
-public void goToHeight (double targetHeight){
-    double pidOutput = pidController.calculate(getCurrentHeight(), targetHeight);
-    rightTalonFX.setVoltage(MathUtil.applyDeadband(pidOutput, 24.0));
-    leftTalonFX.setVoltage(MathUtil.applyDeadband(pidOutput, 24.0));
+public void goToExtension (double targetExtension){
+    double pidOutput = pidController.calculate(getExtension(), targetExtension);
+    rightTalonFX.setVoltage(MathUtil.clamp(pidOutput, -12.0, 12.0));
+    leftTalonFX.setVoltage(MathUtil.clamp(pidOutput, -12.0, 12.0));
 }
 
 public void stop(){
@@ -68,19 +68,19 @@ public void stop(){
     rightTalonFX.setVoltage(0);
 }
 
-public boolean isNotAtSafeHeight(){
-    if (getCurrentHeight() == MathUtil.applyDeadband(MAX_HEIGHT, 0.1)||
-    getCurrentHeight()==MathUtil.applyDeadband(STARTING_HEIGHT, 0.1)){
-        return true;
+public boolean isAtSafeHeight(){
+    if (getExtension() == MathUtil.applyDeadband(MAX_HEIGHT, 0.1)||
+    getExtension()==MathUtil.applyDeadband(STARTING_HEIGHT, 0.1)){
+        return false;
     }
     else{
-        return false;
+        return true;
     }
 }
 
 public void manualControl(){
-    double speed = Math.pow((RobotContainer.controller.getLeftY()), 3);
-    double percentExtension = this.getCurrentHeight()/MAX_EXTENSION;
+    double speed = Math.pow((RobotContainer.operatorController.getLeftY()), 3);
+    double percentExtension = this.getExtension()/MAX_EXTENSION;
     if (percentExtension >= (1-SLOW_DOWN_ZONE)||percentExtension <= SLOW_DOWN_ZONE){
         if (percentExtension >= 0.99|| percentExtension <= 0.01){
             stop();
@@ -96,13 +96,9 @@ public void manualControl(){
     }
 }
 
-public Command goToHeightCommand (double targetHeight){
-    return Commands.run(() -> goToHeight(targetHeight), this)
-    .until(() -> getCurrentHeight() == MathUtil.applyDeadband(targetHeight, 0.01));
-}
-
-public Command goToL1HeightCommand(double targetHeight){
-    return Commands.runOnce(() -> goToHeight(L1_HEIGHT), this);
+public Command goToExtensionCommand (double targetExtension){
+    return Commands.run(() -> goToExtension(targetExtension), this)
+    .until(() -> getExtension() == MathUtil.applyDeadband(targetExtension, 0.01));
 }
 
 public Command manualContralCommand (){

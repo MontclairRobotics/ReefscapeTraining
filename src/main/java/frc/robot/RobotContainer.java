@@ -41,7 +41,7 @@ import frc.robot.util.TunerConstants;
 import frc.robot.vision.Limelight;
 
 public class RobotContainer {
-  public static CommandPS5Controller controller = new CommandPS5Controller(0);
+  public static CommandPS5Controller operatorController = new CommandPS5Controller(1);
   public static Elevator elevator = new Elevator();
 
   public RobotContainer() {
