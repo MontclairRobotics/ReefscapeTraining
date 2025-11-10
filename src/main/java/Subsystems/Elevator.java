@@ -1,5 +1,6 @@
 package Subsystems;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -12,6 +13,7 @@ import frc.robot.RobotContainer;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 public class Elevator extends SubsystemBase{
 
@@ -32,11 +34,14 @@ public class Elevator extends SubsystemBase{
 
         public double speed;
         public double pidOutput;
+        public double ffOutput;
+        public double totalOutput;
         public double rightDisplacement;
         public double leftDisplacement;
         public double averageDisplacement;
 
         private PIDController pidController;
+        private ElevatorFeedforward feedForward;
 
 
         private final int LEFT_MOTOR_ID = 20;
@@ -44,10 +49,14 @@ public class Elevator extends SubsystemBase{
         public TalonFX rightTalonFX;
         public TalonFX leftTalonFX;
 
+
 public Elevator (){
     rightTalonFX = new TalonFX (RIGHT_MOTOR_ID, "Drivetrain");
     leftTalonFX = new TalonFX (LEFT_MOTOR_ID, "Drivetrain");
+    rightTalonFX.setNeutralMode(NeutralModeValue.Brake);
     pidController = new PIDController(8.2697, 0, 0.068398);
+    feedForward = new ElevatorFeedforward(0.058548, 0.22, 0.10758);
+    feedForward = new ElevatorFeedforward(0.058548, 0.22, 0.10758);
     }
 
 private double getExtension(){
@@ -55,12 +64,15 @@ private double getExtension(){
     double leftDisplacement = (rightTalonFX.getPosition().getValueAsDouble());
     double averageDisplacement = ((rightDisplacement + leftDisplacement)/2.0);
     return averageDisplacement * METERS_PER_ROTATION;
-
 }
+
 public void goToExtension (double targetExtension){
     double pidOutput = pidController.calculate(getExtension(), targetExtension);
-    rightTalonFX.setVoltage(MathUtil.clamp(pidOutput, -12.0, 12.0));
-    leftTalonFX.setVoltage(MathUtil.clamp(pidOutput, -12.0, 12.0));
+    double desiredVelocity = 0.0;
+    double ffOutput = feedForward.calculate(desiredVelocity);
+    double totalOutput = pidOutput + ffOutput;
+    rightTalonFX.setVoltage(MathUtil.clamp(totalOutput, -12.0, 12.0));
+    leftTalonFX.setVoltage(MathUtil.clamp(totalOutput, -12.0, 12.0));
 }
 
 public void stop(){
@@ -82,7 +94,7 @@ public void manualControl(){
     double speed = Math.pow((RobotContainer.operatorController.getLeftY()), 3);
     double percentExtension = this.getExtension()/MAX_EXTENSION;
     if (percentExtension >= (1-SLOW_DOWN_ZONE)||percentExtension <= SLOW_DOWN_ZONE){
-        if (percentExtension >= 0.99|| percentExtension <= 0.01){
+        if (!isAtSafeHeight()){
             stop();
         }
         else{
@@ -92,7 +104,7 @@ public void manualControl(){
     }
     else {
         leftTalonFX.set(speed);
-        rightTalonFX.set(speed);
+        rightTalonFX.set(speed); 
     }
 }
 

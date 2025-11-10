@@ -50,6 +50,10 @@ public class RobotContainer {
 
   private void configureBindings() {
     elevator.setDefaultCommand(elevator.manualContralCommand());
+    operatorController.L1().onTrue(elevator.goToExtensionCommand(Elevator.L1_HEIGHT));
+    operatorController.L2().onTrue(elevator.goToExtensionCommand(Elevator.L2_HEIGHT));
+    operatorController.R1().onTrue(elevator.goToExtensionCommand(Elevator.L3_HEIGHT));
+    operatorController.R2().onTrue(elevator.goToExtensionCommand(Elevator.L4_HEIGHT));
   }
 
   public Command getAutonomousCommand() {
