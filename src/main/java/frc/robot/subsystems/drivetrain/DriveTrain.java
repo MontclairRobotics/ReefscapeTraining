@@ -2,7 +2,6 @@ package frc.robot.subsystems.drivetrain;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -16,12 +15,9 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 /**
  * the drivetrain subsystem.
  * 
- * 
  */
 public class DriveTrain implements Subsystem{
     // the subsystem wide variables
-    PIDController drivePID;
-    PIDController rotPID;
     boolean fieldRelative = true;
     SwerveDriveKinematics driveKinematics = new SwerveDriveKinematics(
         DTConstants.frontLeftLocation,
@@ -39,9 +35,6 @@ public class DriveTrain implements Subsystem{
     };
                
     public DriveTrain(){
-        drivePID = new PIDController(DTConstants.drkP,DTConstants.drkI,DTConstants.drkD);
-        rotPID = new PIDController(DTConstants.rotkP,DTConstants.rotkI,DTConstants.rotkD);
-        rotPID.enableContinuousInput(-Math.PI, Math.PI);
     }
 
     public void driveJoystick(CommandPS5Controller driveController, boolean fieldRelative){
