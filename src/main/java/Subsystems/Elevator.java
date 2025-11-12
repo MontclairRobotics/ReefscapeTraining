@@ -60,8 +60,8 @@ public class Elevator extends SubsystemBase{
         private final NetworkTableEntry speedEntry;
         private final NetworkTableEntry currentExtensionEntry;
         private final NetworkTableEntry targetExtensionEntry;
-        private final NetworkTableEntry pidOutputTableEntry;
-        private final NetworkTableEntry ffOutputTableEntry;
+        private final NetworkTableEntry pidOutputEntry;
+        private final NetworkTableEntry ffOutputEntry;
         private final NetworkTableEntry totalOutputEntry;
         private final NetworkTableEntry rightMotorDisplacementEntry;
         private final NetworkTableEntry leftMotorDisplacementEntry;
@@ -81,8 +81,8 @@ public Elevator (){
     speedEntry = elevatorNetworkTable.getEntry("Current speed");
     currentExtensionEntry = elevatorNetworkTable.getEntry("Current extension(m)");
     targetExtensionEntry = elevatorNetworkTable.getEntry("Current target extension (m)");
-    pidOutputTableEntry = elevatorNetworkTable.getEntry("Current PID Output (V)");
-    ffOutputTableEntry = elevatorNetworkTable.getEntry("Current feed forward output (V)");
+    pidOutputEntry = elevatorNetworkTable.getEntry("Current PID Output (V)");
+    ffOutputEntry = elevatorNetworkTable.getEntry("Current feed forward output (V)");
     totalOutputEntry = elevatorNetworkTable.getEntry("Current total output (V)");
     rightMotorDisplacementEntry = elevatorNetworkTable.getEntry("Current average displacement of the right motor (rot)");
     leftMotorDisplacementEntry = elevatorNetworkTable.getEntry("Current average displacement of the left motor (rot)");
@@ -94,17 +94,18 @@ public Elevator (){
     }
 
 private double getExtension(){
-    double rightDisplacement = (rightTalonFX.getPosition().getValueAsDouble());
-    double leftDisplacement = (rightTalonFX.getPosition().getValueAsDouble());
-    double averageDisplacement = ((rightDisplacement + leftDisplacement)/2.0);
+    rightDisplacement = rightTalonFX.getPosition().getValueAsDouble();
+    leftDisplacement = leftTalonFX.getPosition().getValueAsDouble();
+    averageDisplacement = (rightDisplacement + leftDisplacement) / 2.0;
     return averageDisplacement * METERS_PER_ROTATION;
 }
 
 public void goToExtension (double targetExtension){
-    double pidOutput = pidController.calculate(getExtension(), targetExtension);
-    double desiredVelocity = 0.0;
-    double ffOutput = feedForward.calculate(desiredVelocity);
-    double totalOutput = pidOutput + ffOutput;
+    this.targetExtension = targetExtension;
+    pidOutput = pidController.calculate(getExtension(), targetExtension);
+    desiredVelocity = 0.0;
+    ffOutput = feedForward.calculate(desiredVelocity);
+    totalOutput = pidOutput + ffOutput;
     rightTalonFX.setVoltage(MathUtil.clamp(totalOutput, -12.0, 12.0));
     leftTalonFX.setVoltage(MathUtil.clamp(totalOutput, -12.0, 12.0));
 }
@@ -150,4 +151,18 @@ public Command goToExtensionCommand (double targetExtension){
 public Command manualContralCommand (){
     return Commands.run(() -> manualControl(), this);
     }
+
+@Override
+public void periodic(){
+    double extension = getExtension();
+    currentExtensionEntry.setDouble(extension);
+    pidOutputEntry.setDouble(pidOutput);
+    ffOutputEntry.setDouble(ffOutput);
+    totalOutputEntry.setDouble(totalOutput);
+    rightMotorDisplacementEntry.setDouble(rightDisplacement);
+    leftMotorDisplacementEntry.setDouble(leftDisplacement);
+    percentExtensionTableEntry.setDouble(percentExtension);
+    targetExtensionEntry.setDouble(targetExtension);
+    speedEntry.setDouble(speed);
+}
 }
