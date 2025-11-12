@@ -1,4 +1,7 @@
 package Subsystems;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
@@ -39,6 +42,10 @@ public class Elevator extends SubsystemBase{
         public double rightDisplacement;
         public double leftDisplacement;
         public double averageDisplacement;
+        public double targetExtension;
+        public double desiredVelocity;
+        public double percentExtension;
+
 
         private PIDController pidController;
         private ElevatorFeedforward feedForward;
@@ -49,14 +56,41 @@ public class Elevator extends SubsystemBase{
         public TalonFX rightTalonFX;
         public TalonFX leftTalonFX;
 
+        private final NetworkTable elevatorNetworkTable;
+        private final NetworkTableEntry speedEntry;
+        private final NetworkTableEntry currentExtensionEntry;
+        private final NetworkTableEntry targetExtensionEntry;
+        private final NetworkTableEntry pidOutputTableEntry;
+        private final NetworkTableEntry ffOutputTableEntry;
+        private final NetworkTableEntry totalOutputEntry;
+        private final NetworkTableEntry rightMotorDisplacementEntry;
+        private final NetworkTableEntry leftMotorDisplacementEntry;
+        public final NetworkTableEntry percentExtensionTableEntry;
+        //public final DoubleSubscriber dblSub;
 
 public Elevator (){
     rightTalonFX = new TalonFX (RIGHT_MOTOR_ID, "Drivetrain");
     leftTalonFX = new TalonFX (LEFT_MOTOR_ID, "Drivetrain");
     rightTalonFX.setNeutralMode(NeutralModeValue.Brake);
+
     pidController = new PIDController(8.2697, 0, 0.068398);
     feedForward = new ElevatorFeedforward(0.058548, 0.22, 0.10758);
     feedForward = new ElevatorFeedforward(0.058548, 0.22, 0.10758);
+
+    elevatorNetworkTable = NetworkTableInstance.getDefault().getTable("Elevator");
+    speedEntry = elevatorNetworkTable.getEntry("Current speed");
+    currentExtensionEntry = elevatorNetworkTable.getEntry("Current extension(m)");
+    targetExtensionEntry = elevatorNetworkTable.getEntry("Current target extension (m)");
+    pidOutputTableEntry = elevatorNetworkTable.getEntry("Current PID Output (V)");
+    ffOutputTableEntry = elevatorNetworkTable.getEntry("Current feed forward output (V)");
+    totalOutputEntry = elevatorNetworkTable.getEntry("Current total output (V)");
+    rightMotorDisplacementEntry = elevatorNetworkTable.getEntry("Current average displacement of the right motor (rot)");
+    leftMotorDisplacementEntry = elevatorNetworkTable.getEntry("Current average displacement of the left motor (rot)");
+    percentExtensionTableEntry = elevatorNetworkTable.getEntry("Current percent extension");
+
+     //dblSub= elevatorNetworkTable.subscribe(0,0, PubSubOption.keepDuplicates(true), PubSubOption.pollStorage(10));
+    //buffer size of 10 enteries
+
     }
 
 private double getExtension(){
