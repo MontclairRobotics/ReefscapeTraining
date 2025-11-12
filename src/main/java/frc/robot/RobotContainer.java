@@ -30,7 +30,7 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.subsystems.DriveTrain;
+import frc.robot.subsystems.drivetrain.DriveTrain;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.Notification.NotificationLevel;
@@ -42,17 +42,17 @@ import frc.robot.vision.Limelight;
 
 public class RobotContainer {
   
-  public static CommandPS5Controller driverController;
+  public static CommandPS5Controller driveController = new CommandPS5Controller(0);
   public static DriveTrain driveTrain = new DriveTrain();
   
 
-public RobotContainer() {
+  public RobotContainer() {
     configureBindings();
   }
 
   private void configureBindings() {
     driveTrain.setDefaultCommand(driveTrain.driveCommand());
-    driverController.square().onTrue(
+    driveController.square().onTrue(
       driveTrain.fieldRelToggleCommand()
     );
   }
