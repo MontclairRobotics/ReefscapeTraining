@@ -50,7 +50,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void disabledExit() {}
-
+  /* 
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
@@ -61,7 +61,7 @@ public class Robot extends LoggedRobot {
 
     // Elastic.selectTab("Autonomous");
   }
-
+  */
   @Override
   public void autonomousPeriodic() {
   }

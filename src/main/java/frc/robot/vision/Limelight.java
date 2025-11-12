@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -91,6 +92,7 @@ public class Limelight extends SubsystemBase {
     private DoublePublisher yDistPub;
     private DoublePublisher xDistPub;
     private DoublePublisher horizontalDistPub;
+    private IntegerPublisher tagsInViewPub;
 
     private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
     private Pose2d pose = new Pose2d();
@@ -105,6 +107,7 @@ public class Limelight extends SubsystemBase {
         this.cameraAngle = cameraAngle;
         this.cameraOffsetX = cameraOffsetX;
         this.cameraOffsetY = cameraOffsetY;
+
         LimelightHelpers.SetFiducialIDFiltersOverride(cameraName, validIDs);
         if (cameraUpsideDown) {
             angleMult = -1;
@@ -118,6 +121,7 @@ public class Limelight extends SubsystemBase {
         yDistPub = lightTable.getDoubleTopic("Y Distance").publish();
         xDistPub = lightTable.getDoubleTopic("X Distance").publish();
         horizontalDistPub = lightTable.getDoubleTopic("Horizontal Distance").publish();
+        tagsInViewPub = lightTable.getIntegerTopic("Tags in View").publish();
     }
 
     // might not be needed
@@ -174,6 +178,10 @@ public class Limelight extends SubsystemBase {
             }
         }
         return largest;
+    }
+
+    public int getTagsInView(){
+        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight").rawFiducials.length;
     }
 
     public Rotation2d getClosestTagAngle() {
@@ -305,6 +313,7 @@ public class Limelight extends SubsystemBase {
         xDistPub.set(getHorizontalDistanceToReef());
         yDistPub.set(getStraightDistanceToReef());
         horizontalDistPub.set(getDistanceToReef());
+        tagsInViewPub.set(getTagsInView());
 
         double[] poseArr = LimelightHelpers.getBotPose_TargetSpace(cameraName);
         Pose2d botPose = new Pose2d();
@@ -341,19 +350,6 @@ public class Limelight extends SubsystemBase {
                 mt2 = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight");
             }
         } 
-
-        /*if (mt1.tagCount == 1 && mt1.rawFiducials.length == 1){
-            if (mt1.rawFiducials[0].ambiguity > 0.7){
-                doRejectUpdate = true;
-            }
-            if (mt1.rawFiducials[0].distToCamera > 3){
-                doRejectUpdate = true;
-            }
-        }
-
-        if (mt1.tagCount == 0){
-            doRejectUpdate = true;
-        }*/
 
         if(Math.abs(m_gyro.getAngularVelocityZWorld().getValueAsDouble()) > 200){
           doRejectUpdate = true;
