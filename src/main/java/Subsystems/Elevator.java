@@ -56,7 +56,7 @@ public class Elevator extends SubsystemBase{
         public TalonFX rightTalonFX;
         public TalonFX leftTalonFX;
 
-        private final NetworkTable elevatorNetworkTable;
+        public final NetworkTable elevatorNetworkTable;
         private final NetworkTableEntry speedEntry;
         private final NetworkTableEntry currentExtensionEntry;
         private final NetworkTableEntry targetExtensionEntry;
@@ -66,7 +66,6 @@ public class Elevator extends SubsystemBase{
         private final NetworkTableEntry rightMotorDisplacementEntry;
         private final NetworkTableEntry leftMotorDisplacementEntry;
         public final NetworkTableEntry percentExtensionTableEntry;
-        //public final DoubleSubscriber dblSub;
 
 public Elevator (){
     rightTalonFX = new TalonFX (RIGHT_MOTOR_ID, "Drivetrain");
@@ -88,9 +87,7 @@ public Elevator (){
     leftMotorDisplacementEntry = elevatorNetworkTable.getEntry("Current average displacement of the left motor (rot)");
     percentExtensionTableEntry = elevatorNetworkTable.getEntry("Current percent extension");
 
-     //dblSub= elevatorNetworkTable.subscribe(0,0, PubSubOption.keepDuplicates(true), PubSubOption.pollStorage(10));
-    //buffer size of 10 enteries
-
+    pidController.setTolerance(0.1);
     }
 
 private double getExtension(){
@@ -108,6 +105,7 @@ public void goToExtension (double targetExtension){
     totalOutput = pidOutput + ffOutput;
     rightTalonFX.setVoltage(MathUtil.clamp(totalOutput, -12.0, 12.0));
     leftTalonFX.setVoltage(MathUtil.clamp(totalOutput, -12.0, 12.0));
+    
 }
 
 public void stop(){
@@ -115,22 +113,35 @@ public void stop(){
     rightTalonFX.setVoltage(0);
 }
 
-public boolean isAtSafeHeight(){
-    if (getExtension() == MathUtil.applyDeadband(MAX_HEIGHT, 0.1)||
-    getExtension()==MathUtil.applyDeadband(STARTING_HEIGHT, 0.1)){
+public boolean isNearTopOfElevator(){
+    if (Math.abs(MAX_EXTENSION-getExtension())<=0.1){
+        return true;
+    }
+    else {
         return false;
     }
-    else{
+}
+
+public boolean isNearBottomOfElevator(){
+    if (Math.abs(getExtension()-STARTING_HEIGHT)<=0.1){
         return true;
+    }
+    else {
+        return false;
     }
 }
 
 public void manualControl(){
-    double speed = Math.pow((RobotContainer.operatorController.getLeftY()), 3);
+    double speed = MathUtil.applyDeadband(Math.pow((RobotContainer.operatorController.getLeftY()), 3), 0.05);
     double percentExtension = this.getExtension()/MAX_EXTENSION;
     if (percentExtension >= (1-SLOW_DOWN_ZONE)||percentExtension <= SLOW_DOWN_ZONE){
-        if (!isAtSafeHeight()){
-            stop();
+        if (isNearTopOfElevator()){
+            leftTalonFX.set(Math.min(0.0, speed));
+            rightTalonFX.set(Math.min(0.0, speed));
+        }
+        else if (isNearBottomOfElevator()){
+            leftTalonFX.set(Math.max(0.0, speed));
+            rightTalonFX.set(Math.max(0.0, speed));
         }
         else{
             leftTalonFX.set(Math.min(speed, SLOWEST_SPEED));
@@ -145,7 +156,7 @@ public void manualControl(){
 
 public Command goToExtensionCommand (double targetExtension){
     return Commands.run(() -> goToExtension(targetExtension), this)
-    .until(() -> getExtension() == MathUtil.applyDeadband(targetExtension, 0.01));
+    .until(() -> pidController.atSetpoint());
 }
 
 public Command manualContralCommand (){
