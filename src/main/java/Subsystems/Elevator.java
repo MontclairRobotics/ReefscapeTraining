@@ -1,4 +1,5 @@
 package Subsystems;
+import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -12,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import frc.robot.RobotContainer;
+import frc.robot.util.LimitSwitch;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -46,10 +48,8 @@ public class Elevator extends SubsystemBase{
         public double desiredVelocity;
         public double percentExtension;
 
-
         private PIDController pidController;
         private ElevatorFeedforward feedForward;
-
 
         private final int LEFT_MOTOR_ID = 20;
         private final int RIGHT_MOTOR_ID = 21;
@@ -57,15 +57,15 @@ public class Elevator extends SubsystemBase{
         public TalonFX leftTalonFX;
 
         public final NetworkTable elevatorNetworkTable;
-        private final NetworkTableEntry speedEntry;
-        private final NetworkTableEntry currentExtensionEntry;
-        private final NetworkTableEntry targetExtensionEntry;
-        private final NetworkTableEntry pidOutputEntry;
-        private final NetworkTableEntry ffOutputEntry;
-        private final NetworkTableEntry totalOutputEntry;
-        private final NetworkTableEntry rightMotorDisplacementEntry;
-        private final NetworkTableEntry leftMotorDisplacementEntry;
-        public final NetworkTableEntry percentExtensionTableEntry;
+        private final DoublePublisher speedPub;
+        private final DoublePublisher currentExtensionPub;
+        private final DoublePublisher targetExtensionPub;
+        private final DoublePublisher pidOutputPub;
+        private final DoublePublisher ffOutputPub;
+        private final DoublePublisher totalOutputPub;
+        private final DoublePublisher rightMotorDisplacementPub;
+        private final DoublePublisher leftMotorDisplacementPub;
+        public final DoublePublisher percentExtensionTablePub;
 
 public Elevator (){
     rightTalonFX = new TalonFX (RIGHT_MOTOR_ID, "Drivetrain");
@@ -76,16 +76,17 @@ public Elevator (){
     feedForward = new ElevatorFeedforward(0.058548, 0.22, 0.10758);
     feedForward = new ElevatorFeedforward(0.058548, 0.22, 0.10758);
 
-    elevatorNetworkTable = NetworkTableInstance.getDefault().getTable("Elevator");
-    speedEntry = elevatorNetworkTable.getEntry("Current speed");
-    currentExtensionEntry = elevatorNetworkTable.getEntry("Current extension(m)");
-    targetExtensionEntry = elevatorNetworkTable.getEntry("Current target extension (m)");
-    pidOutputEntry = elevatorNetworkTable.getEntry("Current PID Output (V)");
-    ffOutputEntry = elevatorNetworkTable.getEntry("Current feed forward output (V)");
-    totalOutputEntry = elevatorNetworkTable.getEntry("Current total output (V)");
-    rightMotorDisplacementEntry = elevatorNetworkTable.getEntry("Current average displacement of the right motor (rot)");
-    leftMotorDisplacementEntry = elevatorNetworkTable.getEntry("Current average displacement of the left motor (rot)");
-    percentExtensionTableEntry = elevatorNetworkTable.getEntry("Current percent extension");
+    NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    NetworkTable elevatorNetworkTable = inst.getTable("Elevator");
+    speedPub = elevatorNetworkTable.getDoubleTopic("Current speed").publish();
+    currentExtensionPub = elevatorNetworkTable.getDoubleTopic("Current extension(m)").publish();
+    targetExtensionPub = elevatorNetworkTable.getDoubleTopic("Current target extension (m)").publish();
+    pidOutputPub = elevatorNetworkTable.getDoubleTopic("Current PID Output (V)").publish();
+    ffOutputPub = elevatorNetworkTable.getDoubleTopic("Current feed forward output (V)").publish();
+    totalOutputPub = elevatorNetworkTable.getDoubleTopic("Current total output (V)").publish();
+    rightMotorDisplacementPub = elevatorNetworkTable.getDoubleTopic("Current average displacement of the right motor (rot)").publish();
+    leftMotorDisplacementPub = elevatorNetworkTable.getDoubleTopic("Current average displacement of the left motor (rot)").publish();
+    percentExtensionTablePub = elevatorNetworkTable.getDoubleTopic("Current percent extension").publish();
 
     pidController.setTolerance(0.1);
     }
@@ -96,6 +97,7 @@ private double getExtension(){
     averageDisplacement = (rightDisplacement + leftDisplacement) / 2.0;
     return averageDisplacement * METERS_PER_ROTATION;
 }
+
 
 public void goToExtension (double targetExtension){
     this.targetExtension = targetExtension;
@@ -131,6 +133,7 @@ public boolean isNearBottomOfElevator(){
     }
 }
 
+
 public void manualControl(){
     double speed = MathUtil.applyDeadband(Math.pow((RobotContainer.operatorController.getLeftY()), 3), 0.05);
     double percentExtension = this.getExtension()/MAX_EXTENSION;
@@ -165,8 +168,15 @@ public Command manualContralCommand (){
 
 @Override
 public void periodic(){
-    double extension = getExtension();
-    currentExtensionEntry.setDouble(extension);
+    currentExtensionPub.set(getExtension() /MAX_EXTENSION);
+    pidOutputPub.set(getExtension());
+    targetExtensionPub.set(getExtension());
+    
+
+
+   // double extension = getExtension();
+
+   /* currentExtensionEntry.setDouble(extension);
     pidOutputEntry.setDouble(pidOutput);
     ffOutputEntry.setDouble(ffOutput);
     totalOutputEntry.setDouble(totalOutput);
@@ -175,5 +185,6 @@ public void periodic(){
     percentExtensionTableEntry.setDouble(percentExtension);
     targetExtensionEntry.setDouble(targetExtension);
     speedEntry.setDouble(speed);
+    */
 }
 }
