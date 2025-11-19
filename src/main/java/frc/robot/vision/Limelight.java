@@ -93,6 +93,9 @@ public class Limelight extends SubsystemBase {
     private DoublePublisher xDistPub;
     private DoublePublisher horizontalDistPub;
     private IntegerPublisher tagsInViewPub;
+    private DoublePublisher xPosPub;
+    private DoublePublisher yPosPub;
+    private DoublePublisher rotationPub;
 
     private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
     private Pose2d pose = new Pose2d();
@@ -122,6 +125,9 @@ public class Limelight extends SubsystemBase {
         xDistPub = lightTable.getDoubleTopic("X Distance").publish();
         horizontalDistPub = lightTable.getDoubleTopic("Horizontal Distance").publish();
         tagsInViewPub = lightTable.getIntegerTopic("Tags in View").publish();
+        xPosPub = lightTable.getDoubleTopic("X Position").publish();
+        yPosPub = lightTable.getDoubleTopic("Y Position").publish();
+        rotationPub = lightTable.getDoubleTopic("Rotation").publish();
     }
 
     // might not be needed
@@ -314,6 +320,11 @@ public class Limelight extends SubsystemBase {
         yDistPub.set(getStraightDistanceToReef());
         horizontalDistPub.set(getDistanceToReef());
         tagsInViewPub.set(getTagsInView());
+        xPosPub.set(poseEstimator.getEstimatedPosition().getX());
+        yPosPub.set(poseEstimator.getEstimatedPosition().getY());
+        rotationPub.set(poseEstimator.getEstimatedPosition().getRotation().getRadians());
+        
+        //publish x, y and rotation 
 
         double[] poseArr = LimelightHelpers.getBotPose_TargetSpace(cameraName);
         Pose2d botPose = new Pose2d();
@@ -337,7 +348,7 @@ public class Limelight extends SubsystemBase {
         this.updateOdometry();
 
     }
-    public void updateOdometry(){   //figure out mettaton 1
+    public void updateOdometry(){   
         Optional<Alliance>ally = DriverStation.getAlliance();
         //LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
         LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
