@@ -1,4 +1,9 @@
 package frc.robot.subsystems.drivetrain;
+import java.util.concurrent.Flow.Publisher;
+
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.MathUtil;
@@ -10,8 +15,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import frc.robot.RobotContainer;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.DoubleTopic;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableValue;
 
-// if it has title case, its james, if it has no caps it's or (yes that's his name) and dashiell is also here in case anyone forgot
+// if it has title case, its james, if it has no caps it's or (yes that's his name) and dashiell is also here in case anyone forgot 
 /**
  * the drivetrain subsystem.
  * 
@@ -26,17 +36,26 @@ public class DriveTrain implements Subsystem{
         DTConstants.backRightLocation
     );
     
+    NetworkTable table = RobotContainer.inst.getTable("Drive");
+    NetworkTable flTable = table.getSubTable("fl");
+    NetworkTable frTable = table.getSubTable("fr");
+    NetworkTable blTable = table.getSubTable("bl");
+    NetworkTable brTable = table.getSubTable("br");
+    NetworkTable[] subTables = {flTable,frTable,blTable,brTable};
+
     Pigeon2 gyro = new Pigeon2(DTConstants.gyroID);
     SwerveModule[] swerveModules = new SwerveModule[] { //fl,fr,bl,br
-            new SwerveModule(DTConstants.frontLeftDriveID, DTConstants.frontLeftRotID, DTConstants.frontLeftEncoder, DTConstants.frontLeftOffset), 
-            new SwerveModule(DTConstants.frontRightDriveID,DTConstants.frontRightRotID, DTConstants.frontRightEncoder, DTConstants.frontLeftOffset),
-            new SwerveModule(DTConstants.backLeftDriveID,DTConstants.backLeftRotID, DTConstants.backLeftEncoder, DTConstants.frontLeftOffset), 
-            new SwerveModule(DTConstants.backRightDriveID, DTConstants.backRightRotID, DTConstants.backLeftEncoder, DTConstants.frontLeftOffset),
+            new SwerveModule(DTConstants.frontLeftDriveID,DTConstants.frontLeftRotID, DTConstants.frontLeftEncoder, DTConstants.frontLeftOffset,flTable), 
+            new SwerveModule(DTConstants.frontRightDriveID, DTConstants.frontRightRotID, DTConstants.frontRightEncoder, DTConstants.frontRightOffset,frTable),
+            new SwerveModule(DTConstants.backLeftDriveID, DTConstants.backLeftRotID, DTConstants.backLeftEncoder, DTConstants.backLeftOffset,blTable), 
+            new SwerveModule(DTConstants.backRightDriveID, DTConstants.backRightRotID, DTConstants.backRightEncoder, DTConstants.backRightOffset,brTable),
     };
-               
-    public DriveTrain(){
-    }
+    
 
+    
+
+
+    
     public void driveJoystick(CommandPS5Controller driveController, boolean fieldRelative){
         double x = Math.pow(-MathUtil.applyDeadband(driveController.getLeftY(),0.001),3)*DTConstants.maxSpeed;
         double y = Math.pow(MathUtil.applyDeadband(driveController.getLeftX(),0.001),3)*DTConstants.maxSpeed;
@@ -65,7 +84,7 @@ public class DriveTrain implements Subsystem{
      * @param speed the chassis speeds object you get from another drive funtion
      */
     public void driveFromChassisSpeeds(ChassisSpeeds speed){
-
+        
         //the module states from the chassis speed
         SwerveModuleState[] moduleStates = driveKinematics.toSwerveModuleStates(speed);
         

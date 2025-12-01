@@ -19,6 +19,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.net.PortForwarder;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.PS5Controller;
@@ -41,7 +42,7 @@ import frc.robot.util.TunerConstants;
 import frc.robot.vision.Limelight;
 
 public class RobotContainer {
-  
+  public static NetworkTableInstance inst = NetworkTableInstance.getDefault();
   public static CommandPS5Controller driveController = new CommandPS5Controller(0);
   public static DriveTrain driveTrain = new DriveTrain();
   
