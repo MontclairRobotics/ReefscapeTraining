@@ -56,7 +56,6 @@ public class Elevator extends SubsystemBase{
         public TalonFX rightTalonFX;
         public TalonFX leftTalonFX;
 
-        public final NetworkTable elevatorNetworkTable;
         private final DoublePublisher speedPub;
         private final DoublePublisher currentExtensionPub;
         private final DoublePublisher targetExtensionPub;
@@ -65,7 +64,7 @@ public class Elevator extends SubsystemBase{
         private final DoublePublisher totalOutputPub;
         private final DoublePublisher rightMotorDisplacementPub;
         private final DoublePublisher leftMotorDisplacementPub;
-        public final DoublePublisher percentExtensionTablePub;
+        public final DoublePublisher percentExtensionPub;
 
 public Elevator (){
     rightTalonFX = new TalonFX (RIGHT_MOTOR_ID, "Drivetrain");
@@ -86,7 +85,7 @@ public Elevator (){
     totalOutputPub = elevatorNetworkTable.getDoubleTopic("Current total output (V)").publish();
     rightMotorDisplacementPub = elevatorNetworkTable.getDoubleTopic("Current average displacement of the right motor (rot)").publish();
     leftMotorDisplacementPub = elevatorNetworkTable.getDoubleTopic("Current average displacement of the left motor (rot)").publish();
-    percentExtensionTablePub = elevatorNetworkTable.getDoubleTopic("Current percent extension").publish();
+    percentExtensionPub = elevatorNetworkTable.getDoubleTopic("Current percent extension").publish();
 
     pidController.setTolerance(0.1);
     }
@@ -168,23 +167,14 @@ public Command manualContralCommand (){
 
 @Override
 public void periodic(){
-    currentExtensionPub.set(getExtension() /MAX_EXTENSION);
-    pidOutputPub.set(getExtension());
-    targetExtensionPub.set(getExtension());
-    
-
-
-   // double extension = getExtension();
-
-   /* currentExtensionEntry.setDouble(extension);
-    pidOutputEntry.setDouble(pidOutput);
-    ffOutputEntry.setDouble(ffOutput);
-    totalOutputEntry.setDouble(totalOutput);
-    rightMotorDisplacementEntry.setDouble(rightDisplacement);
-    leftMotorDisplacementEntry.setDouble(leftDisplacement);
-    percentExtensionTableEntry.setDouble(percentExtension);
-    targetExtensionEntry.setDouble(targetExtension);
-    speedEntry.setDouble(speed);
-    */
-}
+    currentExtensionPub.set(getExtension());
+    targetExtensionPub.set(targetExtension);
+    pidOutputPub.set(pidOutput);
+    ffOutputPub.set(ffOutput);
+    totalOutputPub.set(totalOutput);
+    rightMotorDisplacementPub.set(rightDisplacement);
+    leftMotorDisplacementPub.set(leftDisplacement);
+    percentExtensionPub.set(percentExtension);
+    speedPub.set(speed);
+    }
 }
