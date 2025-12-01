@@ -40,8 +40,8 @@ import frc.robot.vision.Limelight;
 
 public class RobotContainer {
 
-  public static Limelight limelightLeft = new Limelight(null, 0, 0, 0, 0, false);
-  public static Limelight limelightRight = new Limelight(null, 0, 0, 0, 0, false);
+  public static Limelight limelightLeft = new Limelight("limelightleft", 0, 0, 0, 0, false);
+  public static Limelight limelightRight = new Limelight("limelightright",  0, 0, 0, 0, false);
 
   public RobotContainer() {
     configureBindings();
@@ -49,8 +49,5 @@ public class RobotContainer {
 
   private void configureBindings() {}
 
-  /* public Command getAutonomousCommand() {
-    return new PathPlannerAuto("testPathUno.path");
-  }
-  */
+  
 }

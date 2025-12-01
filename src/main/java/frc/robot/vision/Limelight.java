@@ -171,12 +171,12 @@ public class Limelight extends SubsystemBase {
         // LimelightHelpers.setLimelightNTDouble(cameraName, "throttle_set", 0); //TODO
         // check needs to be 1? // manage thermals
     }
-
+    
     public RawFiducial getClosestTag() {
         RawFiducial[] tags = LimelightHelpers.getRawFiducials(cameraName);
         if (tags.length == 0) {
-            return null;
-        }
+            return null; 
+        } 
         RawFiducial largest = tags[0];
         for (RawFiducial tag : tags) {
             if (tag.distToRobot > largest.distToRobot) {
@@ -184,17 +184,17 @@ public class Limelight extends SubsystemBase {
             }
         }
         return largest;
-    }
+    } 
 
     public int getTagsInView(){
-        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight").rawFiducials.length;
+        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName).tagCount;
     }
 
     public Rotation2d getClosestTagAngle() {
         int closestId = getClosestTag().id;
         return tagRotationsMap.get(closestId);
     }
-
+    
 
     // TODO: Do we need these / check if the trig is right
 
@@ -331,6 +331,8 @@ public class Limelight extends SubsystemBase {
         if (poseArr.length >= 6) {
             botPose = new Pose2d(poseArr[0], poseArr[2], Rotation2d.fromDegrees(poseArr[4]));
         }
+          
+
         Logger.recordOutput(cameraName + "/IMUYaw",
                 LimelightHelpers.getIMUData(cameraName).robotYaw * (Math.PI / 180.0)); // TODO should be yaw?
         Logger.recordOutput(cameraName + "/BotPoseTargetSpace", botPose);
