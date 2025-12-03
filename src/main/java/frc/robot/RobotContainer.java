@@ -13,7 +13,6 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import Subsystems.Elevator;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -25,7 +24,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
-import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -57,7 +55,6 @@ public class RobotContainer {
 
   public RobotContainer() {
     configureBindings();
-    //networkTable = NetworkTableInstance.getDefault().getTable("Elevator");
   }
 
   private void configureBindings() {
