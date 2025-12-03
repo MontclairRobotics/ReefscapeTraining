@@ -13,12 +13,15 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import Subsystems.Elevator;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.net.PortForwarder;
+import edu.wpi.first.networktables.NetworkTable;
+
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
@@ -42,20 +45,32 @@ import frc.robot.util.TunerConstants;
 import frc.robot.vision.Limelight;
 
 public class RobotContainer {
+
   public static NetworkTableInstance inst = NetworkTableInstance.getDefault();
   public static CommandPS5Controller driveController = new CommandPS5Controller(0);
   public static DriveTrain driveTrain = new DriveTrain();
+  public static CommandPS5Controller operatorController = new CommandPS5Controller(1);
+  public static Elevator elevator = new Elevator();
+  //public final NetworkTable networkTable;
+
   
 
   public RobotContainer() {
     configureBindings();
+    //networkTable = NetworkTableInstance.getDefault().getTable("Elevator");
   }
 
   private void configureBindings() {
+
     driveTrain.setDefaultCommand(driveTrain.driveCommand());
-    driveController.square().onTrue(
-      driveTrain.fieldRelToggleCommand()
-    );
+    driveController.square().onTrue(driveTrain.fieldRelToggleCommand());
+
+    elevator.setDefaultCommand(elevator.manualContralCommand());
+    operatorController.L1().onTrue(elevator.goToExtensionCommand(Elevator.L1_HEIGHT));
+    operatorController.L2().onTrue(elevator.goToExtensionCommand(Elevator.L2_HEIGHT));
+    operatorController.R1().onTrue(elevator.goToExtensionCommand(Elevator.L3_HEIGHT));
+    operatorController.R2().onTrue(elevator.goToExtensionCommand(Elevator.L4_HEIGHT));
+
   }
 
   public Command getAutonomousCommand() {
