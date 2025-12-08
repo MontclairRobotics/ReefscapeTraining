@@ -14,13 +14,13 @@ public class DTConstants{
     
     // PIDS
         //DRIVE
-            static double drkP = -1; //TODO: FIND THESE
-            static double drkI = -1; 
-            static double drkD = -1; 
+            static double drkP = 0; //TODO: FIND THESE
+            static double drkI = 0; 
+            static double drkD = 0; 
         //ROT
-            static double rotkP = -1; //TODO: FIND THESE
-            static double rotkI = -1; 
-            static double rotkD = -1; 
+            static double rotkP = 0; //TODO: FIND THESE
+            static double rotkI = 0; 
+            static double rotkD = 0; 
     // ENCODER OFFSETS
         static double frontLeftOffset = -1;//TODO: FIND THESE
         static double frontRightOffset = -1;

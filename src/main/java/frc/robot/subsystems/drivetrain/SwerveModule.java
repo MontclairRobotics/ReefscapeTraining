@@ -4,6 +4,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.DoubleTopic;
 import edu.wpi.first.networktables.NetworkTable;
@@ -89,5 +90,10 @@ public class SwerveModule extends SubsystemBase {
         driveWithVoltage(
                 drivePID.calculate(currentVelocity, moduleState.speedMetersPerSecond),                    
                 rotPID.calculate(currentRot, moduleState.angle.getRadians()));
+    }
+
+    public SwerveModulePosition getSwervePosition(){
+        SwerveModulePosition swervePosition = new SwerveModulePosition(driveMotor.getPosition().getValueAsDouble(), new Rotation2d(encoder.getPosition().getValueAsDouble()));
+        return swervePosition;
     }
 }

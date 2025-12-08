@@ -3,6 +3,8 @@ package frc.robot.subsystems.drivetrain;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -10,6 +12,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import frc.robot.RobotContainer;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTable;
 
@@ -28,6 +32,7 @@ public class DriveTrain extends SubsystemBase {
         DTConstants.backLeftLocation,
         DTConstants.backRightLocation
     );
+    Pigeon2 gyro = new Pigeon2(DTConstants.gyroID);
     
     NetworkTable table = RobotContainer.inst.getTable("Drive");
     NetworkTable flTable = table.getSubTable("fl");
@@ -35,14 +40,21 @@ public class DriveTrain extends SubsystemBase {
     NetworkTable blTable = table.getSubTable("bl");
     NetworkTable brTable = table.getSubTable("br");
 
-    Pigeon2 gyro = new Pigeon2(DTConstants.gyroID);
-    SwerveModule[] swerveModules = new SwerveModule[] { //fl,fr,bl,br
+    public SwerveModule[] swerveModules = new SwerveModule[] { //fl,fr,bl,br
             new SwerveModule(DTConstants.frontLeftDriveID,DTConstants.frontLeftRotID, DTConstants.frontLeftEncoder, DTConstants.frontLeftOffset,flTable), 
             new SwerveModule(DTConstants.frontRightDriveID, DTConstants.frontRightRotID, DTConstants.frontRightEncoder, DTConstants.frontRightOffset,frTable),
             new SwerveModule(DTConstants.backLeftDriveID, DTConstants.backLeftRotID, DTConstants.backLeftEncoder, DTConstants.backLeftOffset,blTable), 
             new SwerveModule(DTConstants.backRightDriveID, DTConstants.backRightRotID, DTConstants.backRightEncoder, DTConstants.backRightOffset,brTable),
     };
-    
+
+
+    public SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(driveKinematics, gyro.getRotation2d(), new SwerveModulePosition[] { 
+        swerveModules[0].getSwervePosition(), 
+        swerveModules[1].getSwervePosition(),
+        swerveModules[2].getSwervePosition(), 
+        swerveModules[3].getSwervePosition(),  
+    }, new Pose2d());
+
     public void driveJoystick(CommandPS5Controller driveController, boolean fieldRelative){
         double x = Math.pow(-MathUtil.applyDeadband(driveController.getLeftY(),0.08),3)*DTConstants.maxSpeed;
         double y = Math.pow(MathUtil.applyDeadband(driveController.getLeftX(),0.08),3)*DTConstants.maxSpeed;

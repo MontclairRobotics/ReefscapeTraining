@@ -17,6 +17,8 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.IntegerPublisher;
@@ -31,6 +33,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
+import frc.robot.subsystems.drivetrain.DTConstants;
+import frc.robot.subsystems.drivetrain.DriveTrain;
 import frc.robot.util.PoseUtils;
 import frc.robot.vision.LimelightHelpers.RawFiducial;
 
@@ -97,9 +101,10 @@ public class Limelight extends SubsystemBase {
     private DoublePublisher yPosPub;
     private DoublePublisher rotationPub;
 
-    private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(null, getClosestTagAngle(), null, null);
-    private Pose2d pose = new Pose2d();
     private final Pigeon2 m_gyro = new Pigeon2(-1); //todo: find
+
+    private Pose2d pose = new Pose2d();
+    
 
     // TODO setup camera IPs?
     // https://docs.limelightvision.io/docs/docs-limelight/getting-started/FRC/best-practices
@@ -174,9 +179,6 @@ public class Limelight extends SubsystemBase {
     
     public RawFiducial getClosestTag() {
         RawFiducial[] tags = LimelightHelpers.getRawFiducials(cameraName);
-        if (tags.length == 0) {
-            return null; 
-        } 
         RawFiducial largest = tags[0];
         for (RawFiducial tag : tags) {
             if (tag.distToRobot > largest.distToRobot) {
@@ -185,11 +187,11 @@ public class Limelight extends SubsystemBase {
         }
         return largest;
     } 
-
+    
     public int getTagsInView(){
         return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(cameraName).tagCount;
     }
-
+    
     public Rotation2d getClosestTagAngle() {
         int closestId = getClosestTag().id;
         return tagRotationsMap.get(closestId);
@@ -316,13 +318,7 @@ public class Limelight extends SubsystemBase {
             }
         }
         // LimelightHelpers.SetFiducialIDFiltersOverride(cameraName, validTags);
-        xDistPub.set(getHorizontalDistanceToReef());
-        yDistPub.set(getStraightDistanceToReef());
-        horizontalDistPub.set(getDistanceToReef());
-        tagsInViewPub.set(getTagsInView());
-        xPosPub.set(poseEstimator.getEstimatedPosition().getX());
-        yPosPub.set(poseEstimator.getEstimatedPosition().getY());
-        rotationPub.set(poseEstimator.getEstimatedPosition().getRotation().getRadians());
+        
         
         //publish x, y and rotation 
 
@@ -349,13 +345,21 @@ public class Limelight extends SubsystemBase {
 
         this.updateOdometry();
 
+        xDistPub.set(getHorizontalDistanceToReef());
+        yDistPub.set(getStraightDistanceToReef());
+        horizontalDistPub.set(getDistanceToReef());
+        tagsInViewPub.set(getTagsInView());
+        xPosPub.set(RobotContainer.driveTrain.poseEstimator.getEstimatedPosition().getX());
+        yPosPub.set(RobotContainer.driveTrain.poseEstimator.getEstimatedPosition().getY());
+        rotationPub.set(RobotContainer.driveTrain.poseEstimator.getEstimatedPosition().getRotation().getRadians());
     }
     public void updateOdometry(){   
+        RobotContainer.driveTrain.poseEstimator.update(getClosestTagAngle(), new SwerveModulePosition[] {} );
         Optional<Alliance>ally = DriverStation.getAlliance();
         //LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
         LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
         boolean doRejectUpdate = false;
-        LimelightHelpers.SetRobotOrientation("limelight", poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        LimelightHelpers.SetRobotOrientation("limelight", RobotContainer.driveTrain.poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
         
 
         if(ally.isPresent()){
@@ -382,8 +386,8 @@ public class Limelight extends SubsystemBase {
             }
 
             if(!doRejectUpdate){
-              poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
-              poseEstimator.addVisionMeasurement(
+                RobotContainer.driveTrain.poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+                RobotContainer.driveTrain.poseEstimator.addVisionMeasurement(
                   mt2.pose,
                   mt2.timestampSeconds);
             }
